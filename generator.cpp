@@ -4,12 +4,11 @@
 #include <vector>
 
 int main() {
-    std::cout << "Starting 10GB file generation... This might take 1-3 minutes depending on your drive.\n";
 
-    // 1. Open the file in binary write mode for maximum speed
+
     std::ofstream outfile("massive_log.txt", std::ios::binary);
 
-    // 2. Create a standard dummy log line
+    //. Create a standard dummy log line
     // We'll use a realistic 2026 timestamp. This specific string is exactly 100 bytes long (including the \n)
     std::string baseLine = "INFO [2026-04-18 12:00:00] User action processed successfully. Status: 200 OK. Transaction ID: 894\n";
 
@@ -27,7 +26,7 @@ int main() {
     for (int i = 0; i < chunksNeeded; ++i) {
         outfile.write(oneMegabyteChunk.data(), oneMegabyteChunk.size());
         
-        // Print progress so you don't think it froze
+        
         if (i % 1024 == 0) {
             std::cout << "Generated " << (i / 1024) << " GB...\n";
         }
