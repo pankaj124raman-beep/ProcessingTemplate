@@ -1,0 +1,4 @@
+hey my name is Pankaj raman 
+iam trying tu build a log processor system 
+i will design basic architecture then i will optimized it
+hopefully this will help me to learn lot of things
