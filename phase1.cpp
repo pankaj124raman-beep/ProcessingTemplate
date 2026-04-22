@@ -24,6 +24,7 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
  void produceworker(){
     std::ifstream file("massive_log.txt");
     const int chunksize = 2050403;
+    std::vector<char>leftover;
     
     while(true){
         std::vector<char>buffer(chunksize);
@@ -32,7 +33,24 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
         if(bytes == 0)break;
         
         buffer.resize(bytes); // shrink buffer to the size of bytes that we needed;
+
+        std::vector<char>whole;
+
+        whole.reserve(leftover.size() + buffer.size());
+        whole.insert(whole.end(),leftover.begin(),leftover.end());
+        whole.insert(whole.end(),buffer.begin(),buffer.end());
+
+        auto rit = std::find_if(whole.rbegin(),whole.rend(),[](char c){return c == '\n';});
         
+        if(rit !=whole.rend()){
+            auto it = rit.base();
+            leftover.assign(it,whole.end());
+            whole.erase(it,whole.end());
+        }else{
+            leftover = std::move(whole);
+            continue;
+        }
+
         std::unique_lock<std::mutex> lock(queuemutex);
 
         cv.wait(lock, [] { return bufferqueue.size() < queueCapisity; }); //// BACKPRESSURE: If the queue has 5 items, drop the lock and go to sleep!
@@ -43,6 +61,14 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
        
         lock.unlock();
         cv.notify_all();
+    }
+
+    if(!leftover.empty()){
+    std::unique_lock<std::mutex> lock(queuemutex);
+    cv.wait(lock,[]{return bufferqueue.size() < queueCapisity;});
+    bufferqueue.push(std::move(leftover));
+    lock.unlock();
+    cv.notify_all();
     }
 
     // Tell the Consumer we are done
