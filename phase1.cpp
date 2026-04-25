@@ -56,7 +56,7 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
         cv.wait(lock, [] { return bufferqueue.size() < queueCapisity; }); //// BACKPRESSURE: If the queue has 5 items, drop the lock and go to sleep!
         
         // 3. Put the data on the belt
-        bufferqueue.push(std::move(buffer));
+        bufferqueue.push(std::move(whole));
 
        
         lock.unlock();
