@@ -23,7 +23,7 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
 
  void produceworker(){
     std::ifstream file("massive_log.txt");
-    const int chunksize = 2050403;
+    const int chunksize = 8388608;
     std::vector<char>leftover;
     
     while(true){
@@ -101,10 +101,6 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
         // 5. Do the heavy lifting (Line counting + our 50ms nap simulation)
         totalines += std::count(buffer.begin(), buffer.end(), '\n');
         
-        // SIMULATING SLOW PROCESSING:
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-       
   }
    std::cout << "Total lines calculated by Consumer: " << totalines << "\n";
 }

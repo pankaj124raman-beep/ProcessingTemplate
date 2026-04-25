@@ -142,3 +142,9 @@ g++ main.cpp -o processor -pthread
 ## 👨‍💻 Author
 
 Pankaj Raman
+
+## powershell commands to run 
+
+cd C:\Users\HP-PC\CSAPP\LOGPROCESSOR
+g++ -O2 -o logprocessor phase1.cpp
+.\logprocessor.exe
