@@ -13,6 +13,9 @@
 #include <queue>
 #include <windows.h>
 #include <psapi.h>
+#include <atomic>
+
+std::atomic<long> total_error_count(0);
 
 std::queue<std::vector<char>> bufferqueue;
 std::mutex queuemutex;
@@ -80,7 +83,6 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
  }
 
   void consumerworker(){
-    long long totalines = 0;
     while(true){
     std::unique_lock<std::mutex> lock(queuemutex);
     // Wait until there is data to process, OR the Producer is completely finished
@@ -97,12 +99,29 @@ std::condition_variable cv; // shoulder tap to wakeup sleeping threads
         // 4. Unlock the Queue immediately and tap the Producer ("Hey, I made space!")
         lock.unlock();
         cv.notify_one();
+  
+        std::string_view  windows(buffer.data(),buffer.size());
+        std::string_view target = "Status: 500";
 
-        // 5. Do the heavy lifting (Line counting + our 50ms nap simulation)
-        totalines += std::count(buffer.begin(), buffer.end(), '\n');
+        size_t cursor_pos = 0;
+        long local_error_count = 0;
+
+        while(true){
+            cursor_pos = windows.find(target,cursor_pos);
+
+            if(cursor_pos== std::string_view::npos){
+                break;
+            }
+
+            local_error_count++;
+            cursor_pos+=target.length();
+        }
+        total_error_count+=local_error_count;
+        std::cout << "total error count by consumer" << " " << local_error_count << std::endl;
+
         
   }
-   std::cout << "Total lines calculated by Consumer: " << totalines << "\n";
+
 }
 
 int main(){
@@ -123,6 +142,8 @@ auto start_time = std::chrono::high_resolution_clock::now();
     consumer3.join();
     consumer4.join();
     consumer5.join();
+
+    std:: cout <<"total errors in the file is " << total_error_count << std::endl;
 
     // 3. Stop the clock
     auto end_time = std::chrono::high_resolution_clock::now();
